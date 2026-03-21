@@ -28,6 +28,8 @@ app.get('/api/health', (req, res) => {
 //routes
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
+const recipeRoutes = require('./routes/recipe.routes');
+app.use('/api/recipes', recipeRoutes);
 
 //404 Handler
 app.use((req, res) => {
