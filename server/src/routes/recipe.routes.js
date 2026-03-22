@@ -7,8 +7,10 @@ const {
   updateRecipe,
   deleteRecipe,
   getMyRecipes,
+  uploadRecipeImage,
 } = require('../controllers/recipe.controller');
 const { protect } = require('../middleware/auth.middleware');
+const upload = require('../middleware/upload.middleware');
 
 // public routes
 router.get('/', getAllRecipes);
@@ -19,5 +21,6 @@ router.get('/:id', getRecipeById);
 router.post('/', protect, createRecipe);
 router.put('/:id', protect, updateRecipe);
 router.delete('/:id', protect, deleteRecipe);
+router.post('/upload', protect, upload.single('image'), uploadRecipeImage);
 
 module.exports = router;

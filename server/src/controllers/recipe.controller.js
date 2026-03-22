@@ -142,6 +142,27 @@ const getMyRecipes = async (req, res) => {
   }
 };
 
+// POST /api/recipes/upload — upload recipe image
+const uploadRecipeImage = async (req, res) => {
+  try {
+    if (!req.file) return sendError(res, 400, 'No image file provided');
+    
+     // save upload record to MongoDB
+    const uploadRecord = await Upload.create({
+      url: req.file.secure_url || req.file.path,
+      publicId: req.file.filename || req.file.public_id,
+      uploadedBy: req.user._id,
+    });
+
+    // cloudinary url is automatically set by multer-storage-cloudinary
+    sendSuccess(res, 200, 'Image uploaded', {
+      imageUrl: req.file.secure_url || req.file.path || req.file.url,
+    });
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+};
+
 module.exports = {
   getAllRecipes,
   getRecipeById,
@@ -149,4 +170,5 @@ module.exports = {
   updateRecipe,
   deleteRecipe,
   getMyRecipes,
+  uploadRecipeImage,
 };

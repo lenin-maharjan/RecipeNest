@@ -3,6 +3,11 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
+const authRoutes = require('./routes/auth.routes');
+const recipeRoutes = require('./routes/recipe.routes');
+const reviewRoutes = require('./routes/review.routes');
+const bookmarkRoutes = require('./routes/bookmark.routes');
+
 const app = express();
 
 //security middlewares
@@ -26,10 +31,10 @@ app.get('/api/health', (req, res) => {
 });
 
 //routes
-const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
-const recipeRoutes = require('./routes/recipe.routes');
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
 
 //404 Handler
 app.use((req, res) => {
