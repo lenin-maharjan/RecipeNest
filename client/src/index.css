@@ -1,33 +1,53 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+  a {
+    @apply no-underline;
+  }
+  img {
+    @apply max-w-full block;
+  }
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #f8f9fa;
-  color: #212529;
-  line-height: 1.6;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
-  border: none;
-  outline: none;
-}
-
-img {
-  max-width: 100%;
-  display: block;
-}
-
-input, textarea, select {
-  outline: none;
-  font-family: inherit;
+@layer components {
+  .btn-primary {
+    @apply bg-primary-500 text-white px-5 py-2.5 rounded-lg font-medium
+           hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed
+           transition-colors duration-200;
+  }
+  .btn-secondary {
+    @apply bg-transparent text-primary-500 border border-primary-500 px-5 py-2.5
+           rounded-lg font-medium hover:bg-primary-50 transition-colors duration-200;
+  }
+  .btn-danger {
+    @apply bg-red-500 text-white px-5 py-2.5 rounded-lg font-medium
+           hover:bg-red-600 transition-colors duration-200;
+  }
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
+           transition duration-200 bg-white;
+  }
+  .input-error {
+    @apply border-red-400 focus:ring-red-300;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100;
+  }
+  .badge-verified {
+    @apply inline-flex items-center gap-1 bg-green-100 text-green-700
+           text-xs font-medium px-2 py-0.5 rounded-full;
+  }
+  .badge-chef {
+    @apply inline-flex items-center gap-1 bg-orange-100 text-orange-700
+           text-xs font-medium px-2 py-0.5 rounded-full;
+  }
 }
