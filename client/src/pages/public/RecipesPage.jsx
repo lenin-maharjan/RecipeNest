@@ -8,6 +8,7 @@ import RecipeFilter from '../../components/recipe/RecipeFilter';
 import Spinner from '../../components/common/Spinner';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
+import SkeletonCard from '../../components/common/SkeletonCard';
 import { getRecipesApi } from '../../api/recipe.api';
 import { Link } from 'react-router-dom';
 
@@ -80,8 +81,13 @@ const RecipesPage = () => {
 
         {/* content */}
         {loading ? (
-          <Spinner fullScreen={false} />
-        ) : recipes.length === 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2
+                        lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </div>
+            ) : recipes.length === 0 ? (
           <EmptyState
             title="No recipes found"
             message="Try adjusting your filters or search terms"
@@ -124,7 +130,7 @@ const RecipesPage = () => {
                       Math.abs(p - page) <= 1
                     )
                     .map((p, idx, arr) => (
-                      <>
+                      <span key={p} className="contents">
                         {idx > 0 && arr[idx - 1] !== p - 1 && (
                           <span key={`dots-${p}`}
                             className="px-2 text-gray-400">
@@ -142,7 +148,7 @@ const RecipesPage = () => {
                         >
                           {p}
                         </button>
-                      </>
+                      </span>
                     ))
                   }
                 </div>
