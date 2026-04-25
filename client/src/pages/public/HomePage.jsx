@@ -35,7 +35,7 @@ const HomePage = () => {
             </div>
 
             <h1 className="font-heading text-5xl md:text-6xl max-w-2xl leading-tight mb-4">
-              Where <em className="italic text-paprika not-italic" style={{fontStyle:'italic'}}>verified</em><br/>
+              Where <em className="text-paprika" style={{fontStyle:'italic'}}>verified</em><br/>
               chefs share craft.
             </h1>
 

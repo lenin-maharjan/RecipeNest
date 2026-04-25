@@ -2,7 +2,7 @@
 // export default ChefProfilePage;
 
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Layout from '../../components/common/Layout';
 import RecipeCard from '../../components/recipe/RecipeCard';
@@ -41,10 +41,18 @@ const ChefProfilePage = () => {
         {/* profile header */}
         <div className="card p-8 mb-8">
           <div className="flex items-start gap-6 flex-wrap">
-            <div className="w-20 h-20 rounded-full bg-primary-500
-                            flex items-center justify-center
-                            text-white text-3xl font-bold flex-shrink-0">
-              {user?.name?.charAt(0).toUpperCase()}
+            <div className="w-20 h-20 rounded-full bg-peach border border-linen
+                            flex items-center justify-center overflow-hidden
+                            text-paprika text-3xl font-bold flex-shrink-0">
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user?.name || 'Chef avatar'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                user?.name?.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2 flex-wrap">

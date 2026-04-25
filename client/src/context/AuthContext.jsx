@@ -3,6 +3,16 @@ import { getMeApi } from '../api/auth.api';
 
 export const AuthContext = createContext();
 
+const normalizeUser = (rawUser) => {
+  if (!rawUser) return null;
+  const id = rawUser.id || rawUser._id;
+  return {
+    ...rawUser,
+    id,
+    _id: rawUser._id || id,
+  };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // true until we check token
@@ -17,7 +27,7 @@ export const AuthProvider = ({ children }) => {
       }
       try {
         const res = await getMeApi();
-        setUser(res.data.data.user);
+        setUser(normalizeUser(res.data.data.user));
       } catch {
         // token invalid or expired — clear it
         localStorage.removeItem('token');
@@ -31,9 +41,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (token, userData) => {
+    const normalized = normalizeUser(userData);
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(normalized));
+    setUser(normalized);
   };
 
   const logout = () => {
@@ -43,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (updatedData) => {
-    setUser((prev) => ({ ...prev, ...updatedData }));
+    setUser((prev) => normalizeUser({ ...prev, ...updatedData }));
   };
 
   return (

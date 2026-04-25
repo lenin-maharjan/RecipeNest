@@ -10,6 +10,7 @@ import RecipesPage from './pages/public/RecipesPage';
 import RecipeDetailPage from './pages/public/RecipeDetailPage';
 import ChefProfilePage from './pages/public/ChefProfilePage';
 import ChefsPage from './pages/public/ChefsPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 // auth pages
 import LoginPage from './pages/auth/LoginPage';
@@ -104,7 +105,7 @@ const App = () => {
           } />
 
           {/* 404 */}
-          <Route path="*" element={<div>404 — Page not found</div>} />
+          <Route path="*" element={<NotFoundPage />} />
 
         </Routes>
       </AuthProvider>

@@ -75,6 +75,10 @@ const RecipeDetailPage = () => {
       toast.error('Please write a comment');
       return;
     }
+    if (comment.trim().length < 10) {
+      toast.error('Comment must be at least 10 characters');
+      return;
+    }
     try {
       setSubmitting(true);
       const res = await createReviewApi({
@@ -133,8 +137,9 @@ const RecipeDetailPage = () => {
     }
   };
 
-  const isOwner = user?.id === recipe?.author?._id;
-  const hasReviewed = reviews.some((r) => r.user?._id === user?.id);
+  const currentUserId = user?.id || user?._id;
+  const isOwner = currentUserId === recipe?.author?._id;
+  const hasReviewed = reviews.some((r) => r.user?._id === currentUserId);
   const canReview = isAuthenticated && !isOwner && !hasReviewed;
 
   if (loading) {
@@ -314,7 +319,7 @@ const RecipeDetailPage = () => {
                   </div>
                   <p className="text-sm text-gray-500 leading-relaxed">{r.comment}</p>
                   
-                  {user?.id === r.user?._id && (
+                  {currentUserId === r.user?._id && (
                     <button onClick={() => handleDeleteReview(r._id)} 
                       className="absolute top-4 right-4 text-xs text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">
                       Delete

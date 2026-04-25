@@ -2,6 +2,8 @@ const User = require('../models/user.model');
 const Recipe = require('../models/recipe.model');
 const Review = require('../models/review.model');
 const Bookmark = require('../models/bookmark.model');
+const Upload = require('../models/upload.model');
+const cloudinary = require('../config/cloudinary');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 // GET /api/admin/stats — dashboard overview
@@ -133,6 +135,20 @@ const deleteUser = async (req, res) => {
     const userRecipes = await Recipe.find({ author: req.params.id });
     const recipeIds = userRecipes.map(r => r._id);
 
+    // clean up uploaded images for the user's recipes
+    const recipeImages = userRecipes
+      .map((r) => r.image)
+      .filter(Boolean);
+    if (recipeImages.length > 0) {
+      const uploads = await Upload.find({ url: { $in: recipeImages } });
+      await Promise.all(
+        uploads.map(async (upload) => {
+          await cloudinary.uploader.destroy(upload.publicId);
+          await Upload.findByIdAndDelete(upload._id);
+        })
+      );
+    }
+
     await Bookmark.deleteMany({ recipe: { $in: recipeIds } });
     await Review.deleteMany({ recipe: { $in: recipeIds } });
 
@@ -201,6 +217,14 @@ const deleteRecipeAdmin = async (req, res) => {
   try {
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) return sendError(res, 404, 'Recipe not found');
+
+    if (recipe.image) {
+      const uploadRecord = await Upload.findOne({ url: recipe.image });
+      if (uploadRecord) {
+        await cloudinary.uploader.destroy(uploadRecord.publicId);
+        await Upload.findByIdAndDelete(uploadRecord._id);
+      }
+    }
 
     await Recipe.findByIdAndDelete(req.params.id);
     await Review.deleteMany({ recipe: req.params.id });

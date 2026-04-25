@@ -82,9 +82,9 @@ const AddRecipePage = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
-                  <div><label className="editorial-label block mb-1.5">Prep (min)</label><input type="number" placeholder="30" {...register('prepTime', { required: 'Required' })} className={inputClass} /></div>
-                  <div><label className="editorial-label block mb-1.5">Cook (min)</label><input type="number" placeholder="20" {...register('cookTime', { required: 'Required' })} className={inputClass} /></div>
-                  <div><label className="editorial-label block mb-1.5">Servings</label><input type="number" placeholder="4" {...register('servings', { required: 'Required' })} className={inputClass} /></div>
+                  <div><label className="editorial-label block mb-1.5">Prep (min)</label><input type="number" min="0" max="1440" placeholder="30" {...register('prepTime', { required: 'Required', min: { value: 0, message: 'Min 0' }, max: { value: 1440, message: 'Max 1440' } })} className={inputClass} /></div>
+                  <div><label className="editorial-label block mb-1.5">Cook (min)</label><input type="number" min="0" max="1440" placeholder="20" {...register('cookTime', { required: 'Required', min: { value: 0, message: 'Min 0' }, max: { value: 1440, message: 'Max 1440' } })} className={inputClass} /></div>
+                  <div><label className="editorial-label block mb-1.5">Servings</label><input type="number" min="1" max="100" placeholder="4" {...register('servings', { required: 'Required', min: { value: 1, message: 'Min 1' }, max: { value: 100, message: 'Max 100' } })} className={inputClass} /></div>
                 </div>
               </div>
             </div>

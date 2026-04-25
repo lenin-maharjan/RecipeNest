@@ -13,7 +13,7 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
-  const { register: registerProfile, handleSubmit: handleProfileSubmit, setValue: setProfileValue, watch, formState: { errors: profileErrors, isSubmitting: profileSubmitting } } = useForm({
+  const { register: registerProfile, handleSubmit: handleProfileSubmit, setValue: setProfileValue, getValues: getProfileValues, watch, formState: { errors: profileErrors, isSubmitting: profileSubmitting } } = useForm({
     defaultValues: { name: user?.name || '', bio: user?.bio || '', avatar: user?.avatar || '' },
   });
   const avatarValue = watch('avatar');
@@ -27,9 +27,16 @@ const ProfilePage = () => {
     try {
       setUploadingAvatar(true);
       const formData = new FormData(); formData.append('image', file);
-      const res = await uploadImageApi(formData);
-      setProfileValue('avatar', res.data.data.imageUrl);
-      toast.success('Image uploaded successfully');
+      const uploadRes = await uploadImageApi(formData);
+      const imageUrl = uploadRes.data.data.imageUrl;
+
+      setProfileValue('avatar', imageUrl, { shouldDirty: true });
+
+      // Persist avatar immediately so it is available across pages/sessions.
+      const { name, bio } = getProfileValues();
+      const profileRes = await updateProfileApi({ name, bio, avatar: imageUrl });
+      updateUser(profileRes.data.data.user);
+      toast.success('Profile photo updated');
     } catch { toast.error('Failed to upload image'); } finally { setUploadingAvatar(false); }
   };
 
@@ -93,6 +100,7 @@ const ProfilePage = () => {
         <div className="max-w-2xl mx-auto px-6 py-10">
           {activeTab === 'profile' && (
             <form onSubmit={handleProfileSubmit(onUpdateProfile)} className="space-y-5">
+              <input type="hidden" {...registerProfile('avatar')} />
               <div>
                 <label className="editorial-label block mb-1.5">Full Name</label>
                 <input {...registerProfile('name', { required: 'Name is required', minLength: { value: 2, message: 'Min 2 characters' } })} className={inputClass} />

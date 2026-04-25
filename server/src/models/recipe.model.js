@@ -44,9 +44,9 @@ const recipeSchema = new mongoose.Schema(
       enum: ['Easy', 'Medium', 'Hard'],
       default: 'Easy',
     },
-    prepTime: { type: Number, default: 0 },   // in minutes
-    cookTime: { type: Number, default: 0 },   // in minutes
-    servings: { type: Number, default: 1 },
+    prepTime: { type: Number, default: 0, min: [0, 'Prep time cannot be negative'] },   // in minutes
+    cookTime: { type: Number, default: 0, min: [0, 'Cook time cannot be negative'] },   // in minutes
+    servings: { type: Number, default: 1, min: [1, 'Servings must be at least 1'] },
     image: { type: String, default: '' },
     author: {
       type: mongoose.Schema.Types.ObjectId,

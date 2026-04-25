@@ -29,7 +29,8 @@ const EditRecipePage = () => {
       try {
         const res = await getRecipeByIdApi(id);
         const data = res.data.data.recipe;
-        if (data.author._id !== user?.id) { toast.error('Not authorised'); navigate('/dashboard'); return; }
+        const currentUserId = user?.id || user?._id;
+        if (data.author?._id !== currentUserId) { toast.error('Not authorised'); navigate('/dashboard'); return; }
         setRecipe(data); setIngredients(data.ingredients); setInstructions(data.instructions); setToolsUsed(data.toolsUsed || []); setImagePreview(data.image || '');
         reset({ title: data.title, description: data.description, category: data.category, difficulty: data.difficulty, prepTime: data.prepTime, cookTime: data.cookTime, servings: data.servings });
       } catch { toast.error('Recipe not found'); navigate('/dashboard'); } finally { setLoading(false); }
@@ -91,9 +92,9 @@ const EditRecipePage = () => {
                   <div><label className="editorial-label block mb-1.5">Difficulty</label><select {...register('difficulty')} className={inputClass}><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select></div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
-                  <div><label className="editorial-label block mb-1.5">Prep (min)</label><input type="number" {...register('prepTime', { required: 'Required' })} className={inputClass} /></div>
-                  <div><label className="editorial-label block mb-1.5">Cook (min)</label><input type="number" {...register('cookTime', { required: 'Required' })} className={inputClass} /></div>
-                  <div><label className="editorial-label block mb-1.5">Servings</label><input type="number" {...register('servings', { required: 'Required' })} className={inputClass} /></div>
+                  <div><label className="editorial-label block mb-1.5">Prep (min)</label><input type="number" min="0" max="1440" {...register('prepTime', { required: 'Required', min: { value: 0, message: 'Min 0' }, max: { value: 1440, message: 'Max 1440' } })} className={inputClass} /></div>
+                  <div><label className="editorial-label block mb-1.5">Cook (min)</label><input type="number" min="0" max="1440" {...register('cookTime', { required: 'Required', min: { value: 0, message: 'Min 0' }, max: { value: 1440, message: 'Max 1440' } })} className={inputClass} /></div>
+                  <div><label className="editorial-label block mb-1.5">Servings</label><input type="number" min="1" max="100" {...register('servings', { required: 'Required', min: { value: 1, message: 'Min 1' }, max: { value: 100, message: 'Max 100' } })} className={inputClass} /></div>
                 </div>
               </div>
             </div>

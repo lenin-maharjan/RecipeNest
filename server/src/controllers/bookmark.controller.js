@@ -65,12 +65,9 @@ const removeBookmark = async (req, res) => {
       user: req.user._id,
       recipe: req.params.recipeId,
     });
-    res.status(200).json({
-      status: 'success',
-      message: 'Bookmark removed',
-    });
+    sendSuccess(res, 200, 'Bookmark removed', {});
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    sendError(res, 500, error.message);
   }
 };
 

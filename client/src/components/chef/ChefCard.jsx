@@ -26,10 +26,18 @@ const ChefCard = ({ chef }) => {
       <div className="h-28 bg-gradient-to-r from-peach to-warm1
                       flex items-center justify-center border-b border-linen">
         <div className="w-20 h-20 rounded-full bg-white border border-linen
-                        flex items-center justify-center
+                        flex items-center justify-center overflow-hidden
                         text-paprika text-3xl font-bold shadow-sm
                         group-hover:scale-110 transition-transform duration-300">
-          {chef?.name?.charAt(0).toUpperCase()}
+          {chef?.avatar ? (
+            <img
+              src={chef.avatar}
+              alt={chef?.name || 'Chef avatar'}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            chef?.name?.charAt(0).toUpperCase()
+          )}
         </div>
       </div>
 

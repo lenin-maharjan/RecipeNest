@@ -86,7 +86,19 @@ const getMe = async (req, res) => {
         if (!user) {
             return sendError(res, 404, 'User not found');
         }
-        sendSuccess(res, 200, `User fetched ${user.id} ${user.name}`, {user});
+        sendSuccess(res, 200, `User fetched ${user.id} ${user.name}`, {
+            user: {
+                id: user._id,
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                bio: user.bio,
+                avatar: user.avatar,
+                isVerifiedChef: user.isVerifiedChef,
+                createdAt: user.createdAt,
+            },
+        });
     } catch (error) {
         sendError(res, 500, error.message);
     }
