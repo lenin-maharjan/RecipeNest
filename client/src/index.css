@@ -1,53 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    @apply bg-gray-50 text-gray-900 antialiased;
-  }
-  a {
-    @apply no-underline;
-  }
-  img {
-    @apply max-w-full block;
-  }
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background: #FFFCF5;
+  color: #1a1107;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-primary-500 text-white px-5 py-2.5 rounded-lg font-medium
-           hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed
-           transition-colors duration-200;
-  }
-  .btn-secondary {
-    @apply bg-transparent text-primary-500 border border-primary-500 px-5 py-2.5
-           rounded-lg font-medium hover:bg-primary-50 transition-colors duration-200;
-  }
-  .btn-danger {
-    @apply bg-red-500 text-white px-5 py-2.5 rounded-lg font-medium
-           hover:bg-red-600 transition-colors duration-200;
-  }
-  .input-field {
-    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
-           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
-           transition duration-200 bg-white;
-  }
-  .input-error {
-    @apply border-red-400 focus:ring-red-300;
-  }
-  .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-100;
-  }
-  .badge-verified {
-    @apply inline-flex items-center gap-1 bg-green-100 text-green-700
-           text-xs font-medium px-2 py-0.5 rounded-full;
-  }
-  .badge-chef {
-    @apply inline-flex items-center gap-1 bg-orange-100 text-orange-700
-           text-xs font-medium px-2 py-0.5 rounded-full;
-  }
+h1, h2, h3, h4 {
+  font-family: 'Georgia', serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
+
+.editorial-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #9A8C7E;
+}
+
+.badge-verified {
+  background: #B5451B;
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: fadeUp 0.3s ease-out; }

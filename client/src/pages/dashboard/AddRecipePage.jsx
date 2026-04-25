@@ -1,449 +1,151 @@
-// const AddRecipePage = () => <div>Add Recipe</div>;
-// export default AddRecipePage;
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Layout from '../../components/common/Layout';
-import Button from '../../components/common/Button';
-import Input from '../../components/common/Input';
 import { createRecipeApi, uploadImageApi } from '../../api/recipe.api';
 import { useForm } from 'react-hook-form';
 
-const CATEGORIES = [
-  'Breakfast', 'Lunch', 'Dinner',
-  'Dessert', 'Snack', 'Beverage', 'Other',
-];
+const CATEGORIES = ['Breakfast','Lunch','Dinner','Dessert','Snack','Beverage','Other'];
+const inputClass = "w-full bg-white border border-linen rounded-lg px-4 py-3 text-sm text-gray-800 placeholder:text-gray-300 focus:outline-none focus:border-sand transition-colors";
 
 const AddRecipePage = () => {
   const navigate = useNavigate();
-  const [ingredients, setIngredients] = useState([
-    { name: '', amount: '' },
-  ]);
-  const [instructions, setInstructions] = useState([
-    { step: 1, text: '' },
-  ]);
+  const [ingredients, setIngredients] = useState([{ name: '', amount: '' }]);
+  const [instructions, setInstructions] = useState([{ step: 1, text: '' }]);
+  const [toolsUsed, setToolsUsed] = useState([]);
+  const [toolInput, setToolInput] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [uploading, setUploading] = useState(false);
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm();
+  const addIngredient = () => setIngredients(p => [...p, { name: '', amount: '' }]);
+  const removeIngredient = (i) => setIngredients(p => p.filter((_, idx) => idx !== i));
+  const updateIngredient = (i, f, v) => setIngredients(p => p.map((ing, idx) => idx === i ? { ...ing, [f]: v } : ing));
+  const addInstruction = () => setInstructions(p => [...p, { step: p.length + 1, text: '' }]);
+  const removeInstruction = (i) => setInstructions(p => p.filter((_, idx) => idx !== i).map((inst, idx) => ({ ...inst, step: idx + 1 })));
+  const updateInstruction = (i, v) => setInstructions(p => p.map((inst, idx) => idx === i ? { ...inst, text: v } : inst));
+  const addTool = () => { const t = toolInput.trim(); if (!t) return; if (toolsUsed.includes(t)) { toast.error('Tool already added'); return; } setToolsUsed(p => [...p, t]); setToolInput(''); };
+  const removeTool = (i) => setToolsUsed(p => p.filter((_, idx) => idx !== i));
+  const handleImageChange = (e) => { const f = e.target.files[0]; if (!f) return; if (f.size > 5*1024*1024) { toast.error('Image must be under 5MB'); return; } setImageFile(f); setImagePreview(URL.createObjectURL(f)); };
 
-  // --- ingredient handlers ---
-  const addIngredient = () =>
-    setIngredients((prev) => [...prev, { name: '', amount: '' }]);
-
-  const removeIngredient = (index) =>
-    setIngredients((prev) => prev.filter((_, i) => i !== index));
-
-  const updateIngredient = (index, field, value) =>
-    setIngredients((prev) =>
-      prev.map((ing, i) =>
-        i === index ? { ...ing, [field]: value } : ing
-      )
-    );
-
-  // --- instruction handlers ---
-  const addInstruction = () =>
-    setInstructions((prev) => [
-      ...prev,
-      { step: prev.length + 1, text: '' },
-    ]);
-
-  const removeInstruction = (index) =>
-    setInstructions((prev) =>
-      prev
-        .filter((_, i) => i !== index)
-        .map((inst, i) => ({ ...inst, step: i + 1 }))
-    );
-
-  const updateInstruction = (index, value) =>
-    setInstructions((prev) =>
-      prev.map((inst, i) =>
-        i === index ? { ...inst, text: value } : inst
-      )
-    );
-
-  // --- image handlers ---
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
-      return;
-    }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  };
-
-  // --- submit ---
   const onSubmit = async (data) => {
-    // validate dynamic fields
-    const validIngredients = ingredients.filter(
-      (i) => i.name.trim() && i.amount.trim()
-    );
-    if (validIngredients.length === 0) {
-      toast.error('Add at least one ingredient');
-      return;
-    }
-    const validInstructions = instructions.filter(
-      (i) => i.text.trim()
-    );
-    if (validInstructions.length === 0) {
-      toast.error('Add at least one instruction');
-      return;
-    }
-
+    const vi = ingredients.filter(i => i.name.trim() && i.amount.trim());
+    if (!vi.length) { toast.error('Add at least one ingredient'); return; }
+    const vn = instructions.filter(i => i.text.trim());
+    if (!vn.length) { toast.error('Add at least one instruction'); return; }
     try {
       let imageUrl = '';
-
-      // upload image first if one was selected
-      if (imageFile) {
-        setUploading(true);
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        const uploadRes = await uploadImageApi(formData);
-        imageUrl = uploadRes.data.data.imageUrl;
-        setUploading(false);
-      }
-
-      await createRecipeApi({
-        ...data,
-        ingredients: validIngredients,
-        instructions: validInstructions,
-        image: imageUrl,
-        prepTime: Number(data.prepTime),
-        cookTime: Number(data.cookTime),
-        servings: Number(data.servings),
-      });
-
-      toast.success('Recipe created!');
-      navigate('/my-recipes');
-    } catch (err) {
-      setUploading(false);
-      toast.error(
-        err.response?.data?.message || 'Failed to create recipe'
-      );
-    }
+      if (imageFile) { setUploading(true); const fd = new FormData(); fd.append('image', imageFile); const ur = await uploadImageApi(fd); imageUrl = ur.data.data.imageUrl; setUploading(false); }
+      await createRecipeApi({ ...data, ingredients: vi, instructions: vn, toolsUsed, image: imageUrl, prepTime: Number(data.prepTime), cookTime: Number(data.cookTime), servings: Number(data.servings) });
+      toast.success('Recipe created!'); navigate('/dashboard');
+    } catch (err) { setUploading(false); toast.error(err.response?.data?.message || 'Failed to create recipe'); }
   };
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Add New Recipe
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Share your recipe with the community
-          </p>
+      <div className="page-enter">
+        <div className="bg-parchment border-b border-linen py-8">
+          <div className="max-w-2xl mx-auto px-6">
+            <div className="editorial-label mb-2">Chef dashboard</div>
+            <h1 className="font-heading text-4xl">Add a recipe</h1>
+          </div>
         </div>
+        <div className="max-w-2xl mx-auto px-6 py-12">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="mb-10">
+              <div className="editorial-label mb-4 pb-2 border-b border-linen">Basic info</div>
+              <div className="space-y-4">
+                <div>
+                  <label className="editorial-label block mb-1.5">Recipe Title</label>
+                  <input placeholder="e.g. Nepali Dal Bhat" {...register('title', { required: 'Title is required' })} className={inputClass} />
+                  {errors.title && <span className="text-xs text-red-500 mt-1 block">{errors.title.message}</span>}
+                </div>
+                <div>
+                  <label className="editorial-label block mb-1.5">Description</label>
+                  <textarea {...register('description', { required: 'Description is required' })} placeholder="Brief description..." rows={3} className={`${inputClass} resize-none`} />
+                  {errors.description && <span className="text-xs text-red-500 mt-1 block">{errors.description.message}</span>}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="editorial-label block mb-1.5">Category</label>
+                    <select {...register('category', { required: 'Required' })} className={inputClass}>
+                      <option value="">Select...</option>
+                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="editorial-label block mb-1.5">Difficulty</label>
+                    <select {...register('difficulty')} className={inputClass}>
+                      <option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div><label className="editorial-label block mb-1.5">Prep (min)</label><input type="number" placeholder="30" {...register('prepTime', { required: 'Required' })} className={inputClass} /></div>
+                  <div><label className="editorial-label block mb-1.5">Cook (min)</label><input type="number" placeholder="20" {...register('cookTime', { required: 'Required' })} className={inputClass} /></div>
+                  <div><label className="editorial-label block mb-1.5">Servings</label><input type="number" placeholder="4" {...register('servings', { required: 'Required' })} className={inputClass} /></div>
+                </div>
+              </div>
+            </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}
-          className="space-y-8">
-
-          {/* basic info */}
-          <div className="card p-6 space-y-5">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Basic Information
-            </h2>
-
-            <Input
-              label="Recipe Title"
-              name="title"
-              placeholder="e.g. Nepali Dal Bhat"
-              register={register('title', {
-                required: 'Title is required',
-                maxLength: {
-                  value: 100,
-                  message: 'Max 100 characters',
-                },
-              })}
-              error={errors.title?.message}
-            />
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Description
-              </label>
-              <textarea
-                {...register('description', {
-                  required: 'Description is required',
-                  maxLength: {
-                    value: 500,
-                    message: 'Max 500 characters',
-                  },
-                })}
-                placeholder="Brief description of your recipe..."
-                rows={3}
-                className="input-field resize-none"
-              />
-              {errors.description && (
-                <span className="text-xs text-red-500">
-                  {errors.description.message}
-                </span>
+            <div className="mb-10">
+              <div className="editorial-label mb-4 pb-2 border-b border-linen">Recipe Image</div>
+              {imagePreview ? (
+                <div className="relative">
+                  <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-xl border border-linen" />
+                  <button type="button" onClick={() => { setImageFile(null); setImagePreview(''); }} className="absolute top-2 right-2 bg-white w-8 h-8 rounded-full border border-linen flex items-center justify-center text-sm hover:bg-parchment">✕</button>
+                </div>
+              ) : (
+                <label className="border-2 border-dashed border-linen rounded-xl p-8 flex flex-col items-center cursor-pointer hover:border-sand text-gray-400 transition-colors bg-stone-50">
+                  <p className="text-sm font-medium">Click to upload image</p><p className="text-xs mt-1">JPG, PNG, WEBP up to 5MB</p>
+                  <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                </label>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-gray-700">
-                  Category
-                </label>
-                <select
-                  {...register('category', {
-                    required: 'Category is required',
-                  })}
-                  className="input-field"
-                >
-                  <option value="">Select category...</option>
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-                {errors.category && (
-                  <span className="text-xs text-red-500">
-                    {errors.category.message}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-gray-700">
-                  Difficulty
-                </label>
-                <select
-                  {...register('difficulty')}
-                  className="input-field"
-                >
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <Input
-                label="Prep Time (min)"
-                name="prepTime"
-                type="number"
-                placeholder="30"
-                register={register('prepTime', {
-                  required: 'Required',
-                  min: { value: 0, message: 'Min 0' },
-                })}
-                error={errors.prepTime?.message}
-              />
-              <Input
-                label="Cook Time (min)"
-                name="cookTime"
-                type="number"
-                placeholder="20"
-                register={register('cookTime', {
-                  required: 'Required',
-                  min: { value: 0, message: 'Min 0' },
-                })}
-                error={errors.cookTime?.message}
-              />
-              <Input
-                label="Servings"
-                name="servings"
-                type="number"
-                placeholder="4"
-                register={register('servings', {
-                  required: 'Required',
-                  min: { value: 1, message: 'Min 1' },
-                })}
-                error={errors.servings?.message}
-              />
-            </div>
-          </div>
-
-          {/* image upload */}
-          <div className="card p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Recipe Image
-            </h2>
-
-            {imagePreview ? (
-              <div className="relative">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full h-48 object-cover rounded-xl"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setImageFile(null);
-                    setImagePreview('');
-                  }}
-                  className="absolute top-2 right-2 bg-red-500 text-white
-                             w-7 h-7 rounded-full flex items-center
-                             justify-center text-sm hover:bg-red-600"
-                >
-                  ✕
-                </button>
-              </div>
-            ) : (
-              <label className="border-2 border-dashed border-gray-200
-                                rounded-xl p-8 flex flex-col items-center
-                                justify-center cursor-pointer
-                                hover:border-primary-300 transition-colors">
-                <svg className="w-10 h-10 text-gray-300 mb-3"
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p className="text-sm text-gray-500 font-medium">
-                  Click to upload image
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  JPG, PNG, WEBP up to 5MB
-                </p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-              </label>
-            )}
-          </div>
-
-          {/* ingredients */}
-          <div className="card p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Ingredients
-            </h2>
-            <div className="space-y-3">
-              {ingredients.map((ing, index) => (
-                <div key={index}
-                  className="flex items-center gap-3">
-                  <input
-                    type="text"
-                    placeholder="Ingredient name"
-                    value={ing.name}
-                    onChange={(e) =>
-                      updateIngredient(index, 'name', e.target.value)
-                    }
-                    className="input-field flex-1"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Amount"
-                    value={ing.amount}
-                    onChange={(e) =>
-                      updateIngredient(index, 'amount', e.target.value)
-                    }
-                    className="input-field w-28"
-                  />
-                  {ingredients.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeIngredient(index)}
-                      className="text-red-400 hover:text-red-600
-                                 transition-colors flex-shrink-0"
-                    >
-                      <svg className="w-5 h-5" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                          strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
+            <div className="mb-10">
+              <div className="editorial-label mb-4 pb-2 border-b border-linen">Ingredients</div>
+              {ingredients.map((ing, i) => (
+                <div key={i} className="flex gap-2 items-start mb-2">
+                  <input type="text" placeholder="Ingredient name" value={ing.name} onChange={e => updateIngredient(i,'name',e.target.value)} className={`${inputClass} flex-1`} />
+                  <input type="text" placeholder="Amount" value={ing.amount} onChange={e => updateIngredient(i,'amount',e.target.value)} className={`${inputClass} w-28`} />
+                  {ingredients.length > 1 && <button type="button" onClick={() => removeIngredient(i)} className="border border-linen text-gray-400 rounded-lg px-3 py-3 text-xs hover:border-sand hover:text-gray-600 transition-colors">×</button>}
                 </div>
               ))}
+              <button type="button" onClick={addIngredient} className="editorial-label text-paprika hover:text-red-800 cursor-pointer mt-1 flex items-center gap-1">+ Add ingredient</button>
             </div>
-            <button
-              type="button"
-              onClick={addIngredient}
-              className="mt-3 text-primary-500 text-sm font-medium
-                         hover:text-primary-600 flex items-center gap-1"
-            >
-              + Add Ingredient
-            </button>
-          </div>
 
-          {/* instructions */}
-          <div className="card p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Instructions
-            </h2>
-            <div className="space-y-4">
-              {instructions.map((inst, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary-500
-                                  text-white flex items-center
-                                  justify-center text-sm font-bold
-                                  flex-shrink-0 mt-1">
-                    {inst.step}
-                  </div>
-                  <div className="flex-1 flex gap-2">
-                    <textarea
-                      placeholder={`Step ${inst.step}...`}
-                      value={inst.text}
-                      onChange={(e) =>
-                        updateInstruction(index, e.target.value)
-                      }
-                      rows={2}
-                      className="input-field resize-none flex-1"
-                    />
-                    {instructions.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeInstruction(index)}
-                        className="text-red-400 hover:text-red-600
-                                   transition-colors self-start mt-1"
-                      >
-                        <svg className="w-5 h-5" fill="none"
-                          viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round"
-                            strokeLinejoin="round" strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+            <div className="mb-10">
+              <div className="editorial-label mb-4 pb-2 border-b border-linen">Instructions</div>
+              {instructions.map((inst, i) => (
+                <div key={i} className="flex gap-2 items-start mb-2">
+                  <div className="w-10 h-[46px] rounded-lg border border-linen bg-stone-50 text-gray-700 flex items-center justify-center text-sm font-medium shrink-0">{inst.step}</div>
+                  <textarea placeholder={`Step ${inst.step}...`} value={inst.text} onChange={e => updateInstruction(i,e.target.value)} rows={2} className={`${inputClass} resize-none flex-1`} />
+                  {instructions.length > 1 && <button type="button" onClick={() => removeInstruction(i)} className="border border-linen text-gray-400 rounded-lg px-3 py-3 text-xs hover:border-sand hover:text-gray-600 transition-colors">×</button>}
                 </div>
               ))}
+              <button type="button" onClick={addInstruction} className="editorial-label text-paprika hover:text-red-800 cursor-pointer mt-1 flex items-center gap-1">+ Add step</button>
             </div>
-            <button
-              type="button"
-              onClick={addInstruction}
-              className="mt-3 text-primary-500 text-sm font-medium
-                         hover:text-primary-600 flex items-center gap-1"
-            >
-              + Add Step
-            </button>
-          </div>
 
-          {/* submit */}
-          <div className="flex gap-3 justify-end">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => navigate(-1)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              loading={isSubmitting || uploading}
-            >
-              {uploading ? 'Uploading image...' : 'Create Recipe'}
-            </Button>
-          </div>
+            <div className="mb-10">
+              <div className="editorial-label mb-4 pb-2 border-b border-linen">Tools used</div>
+              <div className="flex gap-2 items-start mb-3">
+                <input type="text" placeholder="e.g. whisk, oven" value={toolInput} onChange={e => setToolInput(e.target.value)} onKeyDown={e => { if (e.key==='Enter') { e.preventDefault(); addTool(); }}} className={`${inputClass} flex-1`} />
+                <button type="button" onClick={addTool} className="border border-linen text-gray-700 rounded-lg px-4 py-3 hover:border-sand text-sm transition-colors font-medium bg-stone-50">Add</button>
+              </div>
+              {toolsUsed.length > 0 && <div className="flex flex-wrap gap-1.5">{toolsUsed.map((t,i) => <span key={i} className="inline-flex items-center gap-1.5 text-xs text-gray-500 border border-linen px-2.5 py-1 rounded">{t}<button type="button" onClick={() => removeTool(i)} className="text-gray-400 hover:text-gray-600">×</button></span>)}</div>}
+            </div>
 
-        </form>
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => navigate(-1)} className="border border-linen text-gray-700 text-sm px-8 py-3 rounded-lg hover:bg-parchment transition-colors">Cancel</button>
+              <button type="submit" disabled={isSubmitting||uploading} className="bg-paprika text-white text-sm font-medium px-8 py-3 rounded-lg hover:bg-red-800 transition-colors flex items-center gap-2">
+                {(isSubmitting||uploading) && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {uploading ? 'Uploading...' : isSubmitting ? 'Saving...' : 'Save recipe'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </Layout>
   );

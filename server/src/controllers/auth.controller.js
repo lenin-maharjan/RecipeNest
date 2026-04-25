@@ -26,7 +26,7 @@ const register = async (req, res) => {
         })
 
         //Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user);
 
         //Send success response
         sendSuccess(res, 201, 'User registered successfully', { 
@@ -36,6 +36,7 @@ const register = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                isVerifiedChef: user.isVerifiedChef,
             }
         });
     } catch (error) {
@@ -54,13 +55,13 @@ const login = async (req, res) => {
             return sendError(res, 400, 'Invalid email or password');
         }
 
-        const isMatch = await user.matchPassowrd(password);
+        const isMatch = await user.matchPassword(password);
         if (!isMatch) {
             return sendError(res, 400, 'Invalid email or password');
         }
 
         //Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user);
 
         //Send success response
         sendSuccess(res, 200, 'User logged in successfully', {
@@ -70,7 +71,7 @@ const login = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                isVerified: user.isVerified,
+                isVerifiedChef: user.isVerifiedChef,
             }
         });
     } catch (error) {
@@ -85,7 +86,7 @@ const getMe = async (req, res) => {
         if (!user) {
             return sendError(res, 404, 'User not found');
         }
-        sendSuccess(res, 200, `User fetched ${user.id, user.name}`, {user});
+        sendSuccess(res, 200, `User fetched ${user.id} ${user.name}`, {user});
     } catch (error) {
         sendError(res, 500, error.message);
     }

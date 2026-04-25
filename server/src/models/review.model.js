@@ -47,7 +47,7 @@ reviewSchema.post('save', async function() {
     if (stats.length > 0) {
         await Recipe.findByIdAndUpdate(this.recipe, {
             averageRating: Math.round(stats[0].avgRating * 10) / 10, //round to 1 decimal place
-            reviewCount: stats[0].count,
+            totalReviews: stats[0].count,
         });
     }   
 });
@@ -68,7 +68,7 @@ reviewSchema.post('findOneAndDelete', async function(doc) {
 
         await Recipe.findByIdAndUpdate(doc.recipe, {
             averageRating: stats.length > 0 ? Math.round(stats[0].avgRating * 10) / 10 : 0, //if no reviews left, set to 0
-            reviewCount: stats.length > 0 ? stats[0].count : 0,
+            totalReviews: stats.length > 0 ? stats[0].count : 0,
         });
     }
 });

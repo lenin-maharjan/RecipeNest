@@ -1,4 +1,3 @@
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -8,21 +7,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50:  '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#e67e22',  // main brand color
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-        },
+        parchment: '#FFFCF5',
+        paprika:   '#B5451B',
+        peach:     '#FDE8D5',
+        saffron:   '#F5C842',
+        herb:      '#3A6B4A',
+        linen:     '#EBE3D5',
+        sand:      '#C4B8A8',
+        warm1:     '#FAEBC0',
+        warm2:     '#FDE8D5',
+        warm3:     '#E4EFE7',
+        warm4:     '#F0E8F0',
+        warm5:     '#E8EEF5',
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        heading: ['Georgia', 'Times New Roman', 'serif'],
+        body:    ['Inter', 'system-ui', 'sans-serif'],
+      },
+      borderRadius: {
+        sm: '3px', md: '6px', lg: '10px', xl: '12px',
       },
     },
   },

@@ -1,19 +1,7 @@
-const Spinner = ({ fullScreen = true }) => {
-  if (fullScreen) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-primary-500
-                        rounded-full animate-spin" />
-      </div>
-    );
-  }
+const Spinner = ({size='sm'}) => (
+  <span className={`inline-block border-2 border-current border-t-transparent
+    rounded-full animate-spin ${size==='sm' ? 'w-3.5 h-3.5' : 'w-5 h-5'}`} />
+);
 
-  return (
-    <div className="flex items-center justify-center p-8">
-      <div className="w-8 h-8 border-4 border-gray-200 border-t-primary-500
-                      rounded-full animate-spin" />
-    </div>
-  );
-};
-
+export { Spinner };
 export default Spinner;

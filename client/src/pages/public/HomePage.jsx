@@ -1,101 +1,110 @@
-// const HomePage = () => <div>Home Page</div>;
-// export default HomePage;
-
 import { Link } from 'react-router-dom';
 import Layout from '../../components/common/Layout';
 import useAuth from '../../hooks/useAuth';
+import RecipeCard from '../../components/recipe/RecipeCard';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const HomePage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const [featured, setFeatured] = useState([]);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const res = await axios.get('/api/recipes?limit=3');
+        setFeatured(res.data.data.recipes);
+      } catch (err) {
+        console.error('Failed to fetch featured recipes', err);
+      }
+    };
+    fetchFeatured();
+  }, []);
 
   return (
     <Layout>
-      {/* hero */}
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
-                        py-20 text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Discover Recipes from{' '}
-            <span className="text-primary-500">Verified Chefs</span>
-          </h1>
-          <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10">
-            Explore thousands of trusted recipes. Our verified chef badge
-            system ensures you're cooking from the best.
-          </p>
-          <div className="flex items-center justify-center gap-4
-                          flex-wrap">
-            <Link to="/recipes" className="btn-primary text-base px-8 py-3">
-              Browse Recipes
-            </Link>
-            {!isAuthenticated && (
-              <Link to="/register"
-                className="btn-secondary text-base px-8 py-3">
-                Join as Chef
-              </Link>
-            )}
-          </div>
-        </div>
-      </section>
+      <div className="page-enter">
+        <section className="bg-parchment relative overflow-hidden py-20 md:py-28">
+          <div className="absolute -top-16 -right-16 w-80 h-80 rounded-full bg-peach opacity-50 pointer-events-none" />
+          <div className="absolute bottom-0 right-36 w-52 h-52 rounded-full bg-warm1 opacity-40 pointer-events-none" />
 
-      {/* features */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Why RecipeNest?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: '✓',
-                title: 'Verified Chefs',
-                desc: 'Every professional chef is verified by our admin team. Cook with confidence knowing the source.',
-                color: 'bg-green-100 text-green-600',
-              },
-              {
-                icon: '★',
-                title: 'Rated Recipes',
-                desc: 'Real reviews from real cooks. Filter by rating to find only the best recipes.',
-                color: 'bg-yellow-100 text-yellow-600',
-              },
-              {
-                icon: '♥',
-                title: 'Save Favourites',
-                desc: 'Bookmark any recipe and build your personal collection to cook later.',
-                color: 'bg-red-100 text-red-600',
-              },
-            ].map((f) => (
-              <div key={f.title} className="card p-8 text-center">
-                <div className={`w-14 h-14 ${f.color} rounded-full flex
-                  items-center justify-center text-2xl mx-auto mb-4`}>
-                  {f.icon}
-                </div>
-                <h3 className="text-xl font-semibold mb-3">{f.title}</h3>
-                <p className="text-gray-500">{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          <div className="max-w-7xl mx-auto px-6 relative">
+            <div className="inline-flex items-center gap-2 bg-peach rounded-full px-4 py-1.5 mb-6">
+              <div className="w-1.5 h-1.5 rounded-full bg-paprika" />
+              <span className="text-xs font-medium text-red-900 tracking-wide">Chef Portal · Est. 2026</span>
+            </div>
 
-      {/* CTA */}
-      {!isAuthenticated && (
-        <section className="bg-primary-500 py-16">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Ready to share your recipes?
-            </h2>
-            <p className="text-primary-100 mb-8 text-lg">
-              Join thousands of chefs already sharing their best dishes.
+            <h1 className="font-heading text-5xl md:text-6xl max-w-2xl leading-tight mb-4">
+              Where <em className="italic text-paprika not-italic" style={{fontStyle:'italic'}}>verified</em><br/>
+              chefs share craft.
+            </h1>
+
+            <p className="text-gray-500 text-base max-w-md leading-relaxed mb-8">
+              A curated platform for professional chefs and food lovers.
+              Browse, review, and save recipes that matter.
             </p>
-            <Link to="/register"
-              className="bg-white text-primary-500 font-semibold
-                         px-8 py-3 rounded-lg hover:bg-primary-50
-                         transition-colors inline-block">
-              Get Started Free
-            </Link>
+
+            <div className="flex gap-3 mb-10">
+              <Link to="/recipes"
+                className="bg-paprika text-white text-sm font-medium px-6 py-3
+                  rounded-lg hover:bg-red-800 transition-colors">
+                Explore recipes
+              </Link>
+              <Link to="/register"
+                className="bg-white border border-linen text-gray-800 text-sm px-6 py-3
+                  rounded-lg hover:border-sand transition-colors">
+                Become a chef →
+              </Link>
+            </div>
+
+            <div className="flex gap-10 pt-8 border-t border-linen">
+              {[{n:'48+',l:'Recipes'},{n:'12',l:'Verified chefs'},{n:'200+',l:'Reviews'}].map(s => (
+                <div key={s.l}>
+                  <div className="font-heading text-2xl text-gray-900">{s.n}</div>
+                  <div className="editorial-label mt-0.5">{s.l}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
-      )}
+
+        <section className="max-w-7xl mx-auto px-6 py-16">
+          <div className="flex items-baseline justify-between mb-8">
+            <div>
+              <div className="editorial-label mb-1.5">Hand-picked</div>
+              <h2 className="font-heading text-3xl">Featured recipes</h2>
+            </div>
+            <Link to="/recipes" className="text-sm text-paprika hover:underline underline-offset-4">
+              View all →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featured.map((r,i) => <RecipeCard key={r._id} recipe={r} index={i} />)}
+          </div>
+        </section>
+
+        <section className="bg-white border-y border-linen py-16">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="editorial-label text-center mb-2">Simple by design</div>
+            <h2 className="font-heading text-3xl text-center mb-14">How RecipeNest works</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+              {[
+                {n:'01', t:'Browse recipes',      d:'Explore a curated library from verified professional chefs.'},
+                {n:'02', t:'Find your chef',      d:'Filter by verified status, cuisine type, rating, and author.'},
+                {n:'03', t:'Review and save',     d:'Bookmark your favourites and leave honest ratings.'},
+              ].map(s => (
+                <div key={s.n} className="flex gap-4">
+                  <div className="font-heading text-3xl text-linen leading-none shrink-0 mt-1">{s.n}</div>
+                  <div>
+                    <h3 className="font-heading text-lg mb-2">{s.t}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed">{s.d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
     </Layout>
   );
 };

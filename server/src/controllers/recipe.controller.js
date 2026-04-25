@@ -1,4 +1,9 @@
 const Recipe = require('../models/recipe.model');
+const Upload = require('../models/upload.model');
+const User = require('../models/user.model');
+const Review = require('../models/review.model');
+const Bookmark = require('../models/bookmark.model');
+const cloudinary = require('../config/cloudinary');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 // GET /api/recipes — get all recipes (public)
@@ -10,6 +15,7 @@ const getAllRecipes = async (req, res) => {
       minRating,
       search,
       verifiedOnly,
+      authorSearch,
       page = 1,
       limit = 10,
     } = req.query;
@@ -27,6 +33,35 @@ const getAllRecipes = async (req, res) => {
       ];
     }
 
+    // DB-level verified chef filter — run BEFORE paginating
+    if (verifiedOnly === 'true') {
+      const chefIds = await User.find({
+        role: 'chef',
+        isVerifiedChef: true,
+      }).select('_id');
+      filter.author = { $in: chefIds.map((u) => u._id) };
+    }
+
+    // author name search — intersects with verifiedOnly filter if both active
+    if (authorSearch) {
+      const matchingAuthors = await User.find({
+        name: { $regex: authorSearch, $options: 'i' },
+      }).select('_id');
+      const authorIds = matchingAuthors.map((u) => u._id);
+
+      if (filter.author && filter.author.$in) {
+        // both filters active — intersect the two ID sets
+        const verifiedSet = new Set(
+          filter.author.$in.map((id) => id.toString())
+        );
+        filter.author = {
+          $in: authorIds.filter((id) => verifiedSet.has(id.toString())),
+        };
+      } else {
+        filter.author = { $in: authorIds };
+      }
+    }
+
     // pagination
     const skip = (Number(page) - 1) * Number(limit);
     const total = await Recipe.countDocuments(filter);
@@ -37,14 +72,8 @@ const getAllRecipes = async (req, res) => {
       .skip(skip)
       .limit(Number(limit));
 
-    // filter by verified chef after populate if needed
-    const results =
-      verifiedOnly === 'true'
-        ? recipes.filter((r) => r.author.isVerifiedChef)
-        : recipes;
-
     sendSuccess(res, 200, 'Recipes fetched', {
-      recipes: results,
+      recipes,
       pagination: {
         total,
         page: Number(page),
@@ -75,8 +104,9 @@ const getRecipeById = async (req, res) => {
 // POST /api/recipes — create recipe (protected)
 const createRecipe = async (req, res) => {
   try {
+    const { title, description, ingredients, instructions, prepTime, cookTime, servings, image, category, difficulty, toolsUsed } = req.body;
     const recipe = await Recipe.create({
-      ...req.body,
+      title, description, ingredients, instructions, prepTime, cookTime, servings, image, category, difficulty, toolsUsed,
       author: req.user._id, // always set from token — never trust client
     });
 
@@ -97,10 +127,21 @@ const updateRecipe = async (req, res) => {
       return sendError(res, 403, 'Not authorised to update this recipe');
     }
 
+    const { title, description, ingredients, instructions, prepTime, cookTime, servings, image, category, difficulty, toolsUsed } = req.body;
+
+    // clean up old image if replacing
+    if (image && recipe.image && image !== recipe.image) {
+      const oldUpload = await Upload.findOne({ url: recipe.image });
+      if (oldUpload) {
+        await cloudinary.uploader.destroy(oldUpload.publicId);
+        await Upload.findByIdAndDelete(oldUpload._id);
+      }
+    }
+
     const updated = await Recipe.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true, runValidators: true } // new: return updated doc, runValidators: recheck schema
+      { title, description, ingredients, instructions, prepTime, cookTime, servings, image, category, difficulty, toolsUsed },
+      { returnDocument: 'after', runValidators: true } // use returnDocument instead of deprecated new
     );
 
     sendSuccess(res, 200, 'Recipe updated', { recipe: updated });
@@ -124,6 +165,18 @@ const deleteRecipe = async (req, res) => {
     }
 
     await Recipe.findByIdAndDelete(req.params.id);
+
+    await Review.deleteMany({ recipe: req.params.id });
+    await Bookmark.deleteMany({ recipe: req.params.id });
+
+    if (recipe.image) {
+      const uploadRecord = await Upload.findOne({ url: recipe.image });
+      if (uploadRecord) {
+        await cloudinary.uploader.destroy(uploadRecord.publicId);
+        await Upload.findByIdAndDelete(uploadRecord._id);
+      }
+    }
+
     sendSuccess(res, 200, 'Recipe deleted', {});
   } catch (error) {
     sendError(res, 500, error.message);

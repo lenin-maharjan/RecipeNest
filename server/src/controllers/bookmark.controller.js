@@ -59,4 +59,19 @@ const checkBookmark = async (req, res) => {
   }
 };
 
-module.exports = { toggleBookmark, getMyBookmarks, checkBookmark };
+const removeBookmark = async (req, res) => {
+  try {
+    await Bookmark.findOneAndDelete({
+      user: req.user._id,
+      recipe: req.params.recipeId,
+    });
+    res.status(200).json({
+      status: 'success',
+      message: 'Bookmark removed',
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+module.exports = { toggleBookmark, getMyBookmarks, checkBookmark, removeBookmark };

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bycrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
         enum:['user', 'chef', 'admin'],
         default: 'user',
     },
-    isVerified: {
+    isVerifiedChef: {
         type: Boolean,
         default: false,
     },
@@ -47,12 +47,12 @@ const userSchema = new mongoose.Schema({
 // Hash password before saving
 userSchema.pre('save', async function () {
     if (!this.isModified('password')) return;
-    this.password = await bycrypt.hash(this.password, 12);
+    this.password = await bcrypt.hash(this.password, 12);
 });
 
 // Method to compare entered password with hashed password
-userSchema.methods.matchPassowrd = async function (enteredPassword) {
-    return await bycrypt.compare(enteredPassword, this.password);
+userSchema.methods.matchPassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
 };
 
 const User = mongoose.model('User', userSchema);

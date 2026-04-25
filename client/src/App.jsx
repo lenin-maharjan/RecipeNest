@@ -9,6 +9,7 @@ import HomePage from './pages/public/HomePage';
 import RecipesPage from './pages/public/RecipesPage';
 import RecipeDetailPage from './pages/public/RecipeDetailPage';
 import ChefProfilePage from './pages/public/ChefProfilePage';
+import ChefsPage from './pages/public/ChefsPage';
 
 // auth pages
 import LoginPage from './pages/auth/LoginPage';
@@ -34,14 +35,27 @@ const App = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Toaster position="top-right" />
+        <Toaster position="bottom-right" toastOptions={{
+          style: {
+            background: '#1a1107',
+            color: '#FFFCF5',
+            borderRadius: '8px',
+            fontSize: '13px',
+            border: '0.5px solid rgba(255,255,255,0.08)',
+            fontFamily: 'Inter, system-ui, sans-serif',
+          },
+          success: { iconTheme: { primary: '#B5451B', secondary: '#FFFCF5' }},
+          error:   { iconTheme: { primary: '#ef4444', secondary: '#FFFCF5' }},
+        }} />
         <Routes>
 
           {/* public routes — anyone can access */}
           <Route path="/" element={<HomePage />} />
           <Route path="/recipes" element={<RecipesPage />} />
+          <Route path="/chefs" element={<ChefsPage />} />
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
           <Route path="/chef/:id" element={<ChefProfilePage />} />
+          <Route path="/chefs/:id" element={<ChefProfilePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 

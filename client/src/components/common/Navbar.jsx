@@ -1,193 +1,100 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
 
 const Navbar = () => {
-  const { user, isAuthenticated, isAdmin, isChef, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleLogout = () => {
     logout();
     toast.success('Logged out successfully');
     navigate('/');
+    setOpen(false);
   };
 
+  const toggleDropdown = () => setOpen(!open);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-linen">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
+        <Link to="/" className="font-heading text-xl tracking-tight text-gray-900 shrink-0">
+          Recipe<span className="text-paprika">·</span>Nest
+        </Link>
 
-          {/* logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-primary-500">
-              RecipeNest
-            </span>
-          </Link>
+        <div className="flex gap-2 sm:gap-3 flex-1 items-center">
+          {[
+            { label: 'Home', to: '/' },
+            { label: 'Recipes', to: '/recipes' },
+            { label: 'Chefs', to: '/chefs' },
+          ].map(item => (
+            <NavLink key={item.label} to={item.to}
+              className={({ isActive }) =>
+                `text-sm px-3 py-1.5 rounded-md transition-colors ${isActive
+                  ? 'bg-parchment text-gray-900 font-medium'
+                  : 'text-stone-500 hover:text-gray-900 hover:bg-parchment/70'}`
+              }>
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
 
-          {/* desktop nav links */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link
-              to="/recipes"
-              className="text-gray-600 hover:text-primary-500
-                         font-medium transition-colors"
-            >
-              Recipes
-            </Link>
-
-            {isAuthenticated && (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="text-gray-600 hover:text-primary-500
-                             font-medium transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/bookmarks"
-                  className="text-gray-600 hover:text-primary-500
-                             font-medium transition-colors"
-                >
-                  Bookmarks
-                </Link>
-              </>
-            )}
-
-            {isChef && (
-              <Link
-                to="/chef-dashboard"
-                className="text-gray-600 hover:text-primary-500
-                           font-medium transition-colors"
-              >
-                Chef Portal
-              </Link>
-            )}
-
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className="text-gray-600 hover:text-primary-500
-                           font-medium transition-colors"
-              >
-                Admin
-              </Link>
-            )}
-          </div>
-
-          {/* desktop auth buttons */}
-          <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                {/* user avatar */}
-                <Link to="/profile" className="flex items-center gap-2
-                  hover:opacity-80 transition-opacity">
-                  <div className="w-8 h-8 rounded-full bg-primary-500
-                    flex items-center justify-center text-white
-                    text-sm font-semibold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">
-                    {user?.name}
-                  </span>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-gray-500 hover:text-red-500
-                             transition-colors font-medium"
-                >
-                  Logout
+        {user ? (
+          <div className="relative" ref={dropdownRef}>
+            <button onClick={toggleDropdown}
+              className="w-9 h-9 rounded-full bg-peach text-paprika text-xs border border-linen
+                font-medium flex items-center justify-center">
+              {user.name?.[0]?.toUpperCase()}
+            </button>
+            {open && (
+              <div className="absolute right-0 top-10 bg-white border border-linen
+                rounded-xl shadow-sm w-48 py-1 z-50">
+                {[
+                  { label: 'My profile', to: '/profile' },
+                  { label: 'Dashboard', to: '/dashboard' },
+                  { label: 'Bookmarks', to: '/bookmarks' },
+                ].map(i => (
+                  <Link key={i.label} to={i.to} onClick={() => setOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-parchment">
+                    {i.label}
+                  </Link>
+                ))}
+                <div className="border-t border-linen my-1" />
+                <button onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                  Sign out
                 </button>
               </div>
-            ) : (
-              <>
-                <Link to="/login" className="btn-secondary text-sm px-4 py-2">
-                  Sign In
-                </Link>
-                <Link to="/register" className="btn-primary text-sm px-4 py-2">
-                  Get Started
-                </Link>
-              </>
             )}
           </div>
-
-          {/* mobile hamburger */}
-          <button
-            className="md:hidden p-2 rounded-lg text-gray-500
-                       hover:bg-gray-100 transition-colors"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              {menuOpen
-                ? <path strokeLinecap="round" strokeLinejoin="round"
-                    strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                : <path strokeLinecap="round" strokeLinejoin="round"
-                    strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              }
-            </svg>
-          </button>
-
-        </div>
+        ) : (
+          <div className="flex gap-2 shrink-0">
+            <Link to="/login"
+              className="text-sm text-gray-600 px-3 py-2 border border-linen
+                rounded-md hover:border-sand hover:bg-parchment transition-colors">
+              Sign in
+            </Link>
+            <Link to="/register"
+              className="text-sm text-white bg-paprika px-4 py-2 rounded-md
+                font-medium hover:bg-red-800 transition-colors">
+              Join free
+            </Link>
+          </div>
+        )}
       </div>
-
-      {/* mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white
-                        px-4 py-4 space-y-3">
-          <Link to="/recipes" onClick={() => setMenuOpen(false)}
-            className="block text-gray-600 font-medium py-2">
-            Recipes
-          </Link>
-          {isAuthenticated && (
-            <>
-              <Link to="/dashboard" onClick={() => setMenuOpen(false)}
-                className="block text-gray-600 font-medium py-2">
-                Dashboard
-              </Link>
-              <Link to="/bookmarks" onClick={() => setMenuOpen(false)}
-                className="block text-gray-600 font-medium py-2">
-                Bookmarks
-              </Link>
-              <Link to="/profile" onClick={() => setMenuOpen(false)}
-                className="block text-gray-600 font-medium py-2">
-                Profile
-              </Link>
-            </>
-          )}
-          {isChef && (
-            <Link to="/chef-dashboard" onClick={() => setMenuOpen(false)}
-              className="block text-gray-600 font-medium py-2">
-              Chef Portal
-            </Link>
-          )}
-          {isAdmin && (
-            <Link to="/admin" onClick={() => setMenuOpen(false)}
-              className="block text-gray-600 font-medium py-2">
-              Admin
-            </Link>
-          )}
-          {isAuthenticated ? (
-            <button onClick={handleLogout}
-              className="block w-full text-left text-red-500
-                         font-medium py-2">
-              Logout
-            </button>
-          ) : (
-            <div className="flex flex-col gap-2 pt-2">
-              <Link to="/login" onClick={() => setMenuOpen(false)}
-                className="btn-secondary text-center">
-                Sign In
-              </Link>
-              <Link to="/register" onClick={() => setMenuOpen(false)}
-                className="btn-primary text-center">
-                Get Started
-              </Link>
-            </div>
-          )}
-        </div>
-      )}
     </nav>
   );
 };

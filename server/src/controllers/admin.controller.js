@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
 const Recipe = require('../models/recipe.model');
 const Review = require('../models/review.model');
+const Bookmark = require('../models/bookmark.model');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 // GET /api/admin/stats — dashboard overview
@@ -104,7 +105,7 @@ const changeUserRole = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { role },
-      { new: true }
+      { returnDocument: 'after' }
     ).select('-password');
 
     if (!user) return sendError(res, 404, 'User not found');
@@ -128,9 +129,16 @@ const deleteUser = async (req, res) => {
 
     await User.findByIdAndDelete(req.params.id);
 
-    // also delete all their recipes and reviews
+    // also delete all their recipes and reviews properly
+    const userRecipes = await Recipe.find({ author: req.params.id });
+    const recipeIds = userRecipes.map(r => r._id);
+
+    await Bookmark.deleteMany({ recipe: { $in: recipeIds } });
+    await Review.deleteMany({ recipe: { $in: recipeIds } });
+
     await Recipe.deleteMany({ author: req.params.id });
     await Review.deleteMany({ user: req.params.id });
+    await Bookmark.deleteMany({ user: req.params.id });
 
     sendSuccess(res, 200, 'User deleted', {});
   } catch (error) {
@@ -196,6 +204,7 @@ const deleteRecipeAdmin = async (req, res) => {
 
     await Recipe.findByIdAndDelete(req.params.id);
     await Review.deleteMany({ recipe: req.params.id });
+    await Bookmark.deleteMany({ recipe: req.params.id });
 
     sendSuccess(res, 200, 'Recipe deleted by admin', {});
   } catch (error) {
