@@ -153,7 +153,9 @@ const RecipeDetailPage = () => {
   }
   if (!recipe) return null;
 
-  const recipeNumber = recipe.recipeIndex || 1;
+  const recipeNumber = Number.isFinite(Number(recipe.recipeIndex))
+    ? Number(recipe.recipeIndex)
+    : null;
 
   return (
     <Layout>
@@ -162,7 +164,10 @@ const RecipeDetailPage = () => {
         <div className="bg-parchment border-b border-linen">
           <div className="max-w-5xl mx-auto px-6 py-10">
             <div className="editorial-label mb-3">
-              {recipe.category} · Recipe no. {String(recipeNumber).padStart(3,'0')}
+              {recipe.category}
+              {recipeNumber !== null && (
+                <> · Recipe no. {String(recipeNumber).padStart(3,'0')}</>
+              )}
             </div>
             <h1 className="font-heading text-4xl md:text-5xl max-w-2xl leading-tight mb-4">
               {recipe.title}

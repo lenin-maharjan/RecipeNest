@@ -8,6 +8,13 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const isAdmin = user?.role === 'admin';
+  const userProfession = user?.profession
+    || (user?.role === 'chef'
+      ? 'Professional Chef'
+      : user?.role === 'admin'
+        ? 'Admin'
+        : 'Food Enthusiast');
 
   const handleLogout = () => {
     logout();
@@ -55,17 +62,33 @@ const Navbar = () => {
         {user ? (
           <div className="relative" ref={dropdownRef}>
             <button onClick={toggleDropdown}
-              className="w-9 h-9 rounded-full bg-peach text-paprika text-xs border border-linen
-                font-medium flex items-center justify-center">
-              {user.name?.[0]?.toUpperCase()}
+              className="flex items-center gap-3 pl-2 pr-3 py-1.5 rounded-full border border-linen
+                bg-white hover:bg-parchment transition-colors max-w-[220px] sm:max-w-none">
+              <span className="w-9 h-9 rounded-full bg-peach text-paprika text-xs border border-linen
+                font-medium flex items-center justify-center overflow-hidden shrink-0">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name || 'User'} className="w-full h-full object-cover" />
+                ) : (
+                  user.name?.[0]?.toUpperCase()
+                )}
+              </span>
+              <span className="hidden sm:flex min-w-0 flex-col items-start text-left leading-tight">
+                <span className="text-sm text-gray-900 font-medium truncate w-full">{user.name}</span>
+                <span className="text-[11px] text-gray-500 truncate w-full">{userProfession}</span>
+              </span>
             </button>
             {open && (
               <div className="absolute right-0 top-10 bg-white border border-linen
                 rounded-xl shadow-sm w-48 py-1 z-50">
+                <div className="px-4 py-2 border-b border-linen sm:hidden">
+                  <div className="text-sm text-gray-900 font-medium truncate">{user.name}</div>
+                  <div className="text-xs text-gray-500 truncate">{userProfession}</div>
+                </div>
                 {[
                   { label: 'My profile', to: '/profile' },
                   { label: 'Dashboard', to: '/dashboard' },
                   { label: 'Bookmarks', to: '/bookmarks' },
+                  ...(isAdmin ? [{ label: 'Admin panel', to: '/admin' }] : []),
                 ].map(i => (
                   <Link key={i.label} to={i.to} onClick={() => setOpen(false)}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-parchment">

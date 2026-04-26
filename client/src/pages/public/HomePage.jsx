@@ -3,23 +3,90 @@ import Layout from '../../components/common/Layout';
 import useAuth from '../../hooks/useAuth';
 import RecipeCard from '../../components/recipe/RecipeCard';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { getRecipesApi, getMyRecipesApi } from '../../api/recipe.api';
+import { getBookmarksApi } from '../../api/bookmark.api';
+import { getChefsApi } from '../../api/user.api';
+import { getReviewCountApi } from '../../api/review.api';
 
 const HomePage = () => {
   const { isAuthenticated, user } = useAuth();
   const [featured, setFeatured] = useState([]);
+  const [recipeCount, setRecipeCount] = useState(null);
+  const [verifiedChefCount, setVerifiedChefCount] = useState(null);
+  const [reviewCount, setReviewCount] = useState(null);
+  const [savedCount, setSavedCount] = useState(null);
+  const [myRecipeCount, setMyRecipeCount] = useState(null);
+  const [myRecipeReviewCount, setMyRecipeReviewCount] = useState(null);
+  const userRoleLabel = user?.role === 'admin'
+    ? 'Admin'
+    : user?.role === 'chef'
+      ? 'Professional Chef'
+      : 'Food Enthusiast';
+  const primaryCta = user?.role === 'admin'
+    ? { to: '/admin', label: 'Open admin panel' }
+    : user?.role === 'chef'
+      ? { to: '/chef-dashboard', label: 'Open chef dashboard' }
+      : { to: '/dashboard', label: 'Open your dashboard' };
+  const secondaryCta = isAuthenticated
+    ? { to: '/recipes', label: 'Browse recipes' }
+    : { to: '/register', label: 'Become a chef →' };
 
   useEffect(() => {
-    const fetchFeatured = async () => {
+    const fetchHomepageData = async () => {
       try {
-        const res = await axios.get('/api/recipes?limit=3');
-        setFeatured(res.data.data.recipes);
+        const [recipesRes, chefsRes, reviewsRes] = await Promise.all([
+          getRecipesApi({ limit: 1000, page: 1 }),
+          getChefsApi({ verifiedOnly: true, limit: 1, page: 1 }),
+          getReviewCountApi(),
+        ]);
+
+        const allRecipes = recipesRes.data.data.recipes || [];
+        setFeatured(allRecipes.slice(0, 3));
+        setRecipeCount(recipesRes.data.data.pagination?.total || allRecipes.length || 0);
+        setVerifiedChefCount(chefsRes.data.data.pagination?.total || 0);
+        setReviewCount(reviewsRes.data.data.total || 0);
+
+        if (isAuthenticated) {
+          const [bookmarksRes, myRecipesRes] = await Promise.all([
+            getBookmarksApi(),
+            getMyRecipesApi(),
+          ]);
+
+          const bookmarks = bookmarksRes.data.data.bookmarks || [];
+          const mine = myRecipesRes.data.data.recipes || [];
+          setSavedCount(bookmarks.filter((b) => b.recipe).length);
+          setMyRecipeCount(mine.length);
+          setMyRecipeReviewCount(
+            mine.reduce((sum, recipe) => sum + (Number(recipe.totalReviews) || 0), 0)
+          );
+        }
       } catch (err) {
         console.error('Failed to fetch featured recipes', err);
+        setFeatured([]);
       }
     };
-    fetchFeatured();
-  }, []);
+    fetchHomepageData();
+  }, [isAuthenticated]);
+
+  const formatStat = (value) => (value === null ? '0' : String(value));
+
+  const statItems = isAuthenticated
+    ? user?.role === 'admin'
+      ? [
+          { n: formatStat(recipeCount), l: 'Recipes' },
+          { n: formatStat(verifiedChefCount), l: 'Verified chefs' },
+          { n: formatStat(reviewCount), l: 'Reviews' },
+        ]
+      : [
+          { n: formatStat(savedCount), l: 'Saved' },
+          { n: formatStat(myRecipeCount), l: 'My recipes' },
+          { n: formatStat(myRecipeReviewCount), l: 'Reviews on my recipes' },
+        ]
+    : [
+        { n: formatStat(recipeCount), l: 'Recipes' },
+        { n: formatStat(verifiedChefCount), l: 'Verified chefs' },
+        { n: formatStat(reviewCount), l: 'Reviews' },
+      ];
 
   return (
     <Layout>
@@ -31,34 +98,46 @@ const HomePage = () => {
           <div className="max-w-7xl mx-auto px-6 relative">
             <div className="inline-flex items-center gap-2 bg-peach rounded-full px-4 py-1.5 mb-6">
               <div className="w-1.5 h-1.5 rounded-full bg-paprika" />
-              <span className="text-xs font-medium text-red-900 tracking-wide">Chef Portal · Est. 2026</span>
+              <span className="text-xs font-medium text-red-900 tracking-wide">
+                {isAuthenticated ? `${userRoleLabel} Portal · Est. 2026` : 'Chef Portal · Est. 2026'}
+              </span>
             </div>
 
             <h1 className="font-heading text-5xl md:text-6xl max-w-2xl leading-tight mb-4">
-              Where <em className="text-paprika" style={{fontStyle:'italic'}}>verified</em><br/>
-              chefs share craft.
+              {isAuthenticated ? (
+                <>
+                  Welcome back, <em className="text-paprika" style={{fontStyle:'italic'}}>{user?.name}</em><br/>
+                  your {userRoleLabel.toLowerCase()} space.
+                </>
+              ) : (
+                <>
+                  Where <em className="text-paprika" style={{fontStyle:'italic'}}>verified</em><br/>
+                  chefs share craft.
+                </>
+              )}
             </h1>
 
             <p className="text-gray-500 text-base max-w-md leading-relaxed mb-8">
-              A curated platform for professional chefs and food lovers.
-              Browse, review, and save recipes that matter.
+              {isAuthenticated
+                ? 'Pick up where you left off, manage your recipes, and keep exploring dishes worth saving.'
+                : 'A curated platform for professional chefs and food lovers. Browse, review, and save recipes that matter.'}
             </p>
 
             <div className="flex gap-3 mb-10">
-              <Link to="/recipes"
+              <Link to={primaryCta.to}
                 className="bg-paprika text-white text-sm font-medium px-6 py-3
                   rounded-lg hover:bg-red-800 transition-colors">
-                Explore recipes
+                {primaryCta.label}
               </Link>
-              <Link to="/register"
+              <Link to={secondaryCta.to}
                 className="bg-white border border-linen text-gray-800 text-sm px-6 py-3
                   rounded-lg hover:border-sand transition-colors">
-                Become a chef →
+                {secondaryCta.label}
               </Link>
             </div>
 
             <div className="flex gap-10 pt-8 border-t border-linen">
-              {[{n:'48+',l:'Recipes'},{n:'12',l:'Verified chefs'},{n:'200+',l:'Reviews'}].map(s => (
+              {statItems.map((s) => (
                 <div key={s.l}>
                   <div className="font-heading text-2xl text-gray-900">{s.n}</div>
                   <div className="editorial-label mt-0.5">{s.l}</div>
@@ -78,9 +157,15 @@ const HomePage = () => {
               View all →
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featured.map((r,i) => <RecipeCard key={r._id} recipe={r} index={i} />)}
-          </div>
+          {featured.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featured.map((r,i) => <RecipeCard key={r._id} recipe={r} index={i} />)}
+            </div>
+          ) : (
+            <div className="border border-linen rounded-xl bg-white p-8 text-center text-sm text-gray-500">
+              Featured recipes will appear here once the backend returns recipe data.
+            </div>
+          )}
         </section>
 
         <section className="bg-white border-y border-linen py-16">

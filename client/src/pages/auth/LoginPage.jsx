@@ -10,7 +10,10 @@ const LoginPage = () => {
   const { login, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) navigate('/dashboard');
+    if (isAuthenticated) {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      navigate(user?.role === 'admin' ? '/admin' : '/dashboard');
+    }
   }, [isAuthenticated, navigate]);
 
   const {

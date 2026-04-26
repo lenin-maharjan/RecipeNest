@@ -70,8 +70,8 @@ const RegisterPage = () => {
               <div className="editorial-label mb-3">I am a...</div>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  {v:'user', icon:'🍳', name:'Food Enthusiast', desc:'Browse, review and save'},
-                  {v:'chef', icon:'👨‍🍳', name:'Professional Chef', desc:'Publish and build portfolio'},
+                  {v:'user', icon:'', name:'Food Enthusiast', desc:'Browse, review and save'},
+                  {v:'chef', icon:'', name:'Professional Chef', desc:'Publish and build portfolio'},
                 ].map(r => (
                   <button type="button" key={r.v} onClick={() => setRole(r.v)}
                     className={`p-4 rounded-xl border text-left transition-all ${

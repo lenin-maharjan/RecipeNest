@@ -78,7 +78,13 @@ const ProfilePage = () => {
                   <h1 className="font-heading text-2xl">{user?.name}</h1>
                   {user?.isVerifiedChef && <span className="badge-verified">✓ Verified</span>}
                 </div>
-                <div className="editorial-label">{user?.role === 'chef' ? 'Professional Chef' : 'Food Enthusiast'}</div>
+                <div className="editorial-label">
+                  {user?.role === 'chef'
+                    ? 'Professional Chef'
+                    : user?.role === 'admin'
+                      ? 'Admin'
+                      : 'Food Enthusiast'}
+                </div>
               </div>
             </div>
           </div>

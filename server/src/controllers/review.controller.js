@@ -53,6 +53,16 @@ const getReviewsByRecipe = async (req, res) => {
   }
 };
 
+// GET /api/reviews/count — get total reviews across the platform
+const getReviewCount = async (req, res) => {
+  try {
+    const total = await Review.countDocuments();
+    sendSuccess(res, 200, 'Review count fetched', { total });
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+};
+
 // DELETE /api/reviews/:id — delete review (owner only)
 const deleteReview = async (req, res) => {
   try {
@@ -70,4 +80,4 @@ const deleteReview = async (req, res) => {
   }
 };
 
-module.exports = { createReview, getReviewsByRecipe, deleteReview };
+module.exports = { createReview, getReviewsByRecipe, deleteReview, getReviewCount };
