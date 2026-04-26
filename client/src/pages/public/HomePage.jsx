@@ -6,7 +6,11 @@ import { useState, useEffect } from 'react';
 import { getRecipesApi, getMyRecipesApi } from '../../api/recipe.api';
 import { getBookmarksApi } from '../../api/bookmark.api';
 import { getChefsApi } from '../../api/user.api';
-import { getReviewCountApi } from '../../api/review.api';
+import {
+  getReviewCountApi,
+  getMyReviewCountApi,
+  getMyRecipeReviewCountApi,
+} from '../../api/review.api';
 
 const HomePage = () => {
   const { isAuthenticated, user } = useAuth();
@@ -17,6 +21,7 @@ const HomePage = () => {
   const [savedCount, setSavedCount] = useState(null);
   const [myRecipeCount, setMyRecipeCount] = useState(null);
   const [myRecipeReviewCount, setMyRecipeReviewCount] = useState(null);
+  const [myReviewCount, setMyReviewCount] = useState(null);
   const userRoleLabel = user?.role === 'admin'
     ? 'Admin'
     : user?.role === 'chef'
@@ -47,18 +52,19 @@ const HomePage = () => {
         setReviewCount(reviewsRes.data.data.total || 0);
 
         if (isAuthenticated) {
-          const [bookmarksRes, myRecipesRes] = await Promise.all([
+          const [bookmarksRes, myRecipesRes, myReviewsRes, myRecipeReviewsRes] = await Promise.all([
             getBookmarksApi(),
             getMyRecipesApi(),
+            getMyReviewCountApi(),
+            getMyRecipeReviewCountApi(),
           ]);
 
           const bookmarks = bookmarksRes.data.data.bookmarks || [];
           const mine = myRecipesRes.data.data.recipes || [];
           setSavedCount(bookmarks.filter((b) => b.recipe).length);
           setMyRecipeCount(mine.length);
-          setMyRecipeReviewCount(
-            mine.reduce((sum, recipe) => sum + (Number(recipe.totalReviews) || 0), 0)
-          );
+          setMyRecipeReviewCount(myRecipeReviewsRes.data.data.total || 0);
+          setMyReviewCount(myReviewsRes.data.data.total || 0);
         }
       } catch (err) {
         console.error('Failed to fetch featured recipes', err);
@@ -80,7 +86,12 @@ const HomePage = () => {
       : [
           { n: formatStat(savedCount), l: 'Saved' },
           { n: formatStat(myRecipeCount), l: 'My recipes' },
-          { n: formatStat(myRecipeReviewCount), l: 'Reviews on my recipes' },
+          {
+            n: user?.role === 'chef'
+              ? formatStat(myRecipeReviewCount)
+              : formatStat(myReviewCount),
+            l: user?.role === 'chef' ? 'Reviews on my recipes' : 'My reviews',
+          },
         ]
     : [
         { n: formatStat(recipeCount), l: 'Recipes' },

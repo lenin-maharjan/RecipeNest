@@ -156,6 +156,10 @@ const RecipeDetailPage = () => {
   const recipeNumber = Number.isFinite(Number(recipe.recipeIndex))
     ? Number(recipe.recipeIndex)
     : null;
+  const reviewCount = reviews.length;
+  const averageRating = reviewCount > 0
+    ? (reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / reviewCount).toFixed(1)
+    : Number(recipe.averageRating || 0).toFixed(1);
 
   return (
     <Layout>
@@ -176,8 +180,8 @@ const RecipeDetailPage = () => {
               <span className="text-sm text-gray-500">by {recipe.author?.name}</span>
               {recipe.author?.isVerifiedChef && <span className="badge-verified">✓ Verified</span>}
               <span className="text-linen mx-1">·</span>
-              <span className="text-paprika font-medium text-sm">★ {Number(recipe.averageRating).toFixed(1)}</span>
-              <span className="text-gray-400 text-sm">({recipe.totalReviews} reviews)</span>
+              <span className="text-paprika font-medium text-sm">★ {averageRating}</span>
+              <span className="text-gray-400 text-sm">({reviewCount} reviews)</span>
               <span className="text-linen mx-1">·</span>
               <span className="text-gray-400 text-sm">{recipe.prepTime} min</span>
               <span className="text-linen mx-1">·</span>
@@ -299,7 +303,7 @@ const RecipeDetailPage = () => {
           <div className="mt-16 pt-12 border-t border-linen">
             <div className="flex items-baseline justify-between mb-8">
               <h2 className="font-heading text-2xl">What people say</h2>
-              <span className="editorial-label">{recipe.totalReviews} reviews</span>
+              <span className="editorial-label">{reviewCount} reviews</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">

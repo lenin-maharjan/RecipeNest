@@ -63,6 +63,31 @@ const getReviewCount = async (req, res) => {
   }
 };
 
+// GET /api/reviews/my-count — get total reviews written by logged-in user
+const getMyReviewCount = async (req, res) => {
+  try {
+    const total = await Review.countDocuments({ user: req.user._id });
+    sendSuccess(res, 200, 'My review count fetched', { total });
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+};
+
+// GET /api/reviews/my-recipe-count — total reviews received on my recipes
+const getMyRecipeReviewCount = async (req, res) => {
+  try {
+    const myRecipeIds = await Recipe.find({ author: req.user._id }).distinct('_id');
+    if (!myRecipeIds.length) {
+      return sendSuccess(res, 200, 'My recipe review count fetched', { total: 0 });
+    }
+
+    const total = await Review.countDocuments({ recipe: { $in: myRecipeIds } });
+    sendSuccess(res, 200, 'My recipe review count fetched', { total });
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+};
+
 // DELETE /api/reviews/:id — delete review (owner only)
 const deleteReview = async (req, res) => {
   try {
@@ -80,4 +105,11 @@ const deleteReview = async (req, res) => {
   }
 };
 
-module.exports = { createReview, getReviewsByRecipe, deleteReview, getReviewCount };
+module.exports = {
+  createReview,
+  getReviewsByRecipe,
+  deleteReview,
+  getReviewCount,
+  getMyReviewCount,
+  getMyRecipeReviewCount,
+};
