@@ -159,8 +159,6 @@ VITE_API_URL=http://localhost:5000/api
 
 ## Running the Application
 
-### Option 1: Run Both Servers Simultaneously
-
 #### Terminal 1 - Start the Backend Server
 
 ```bash

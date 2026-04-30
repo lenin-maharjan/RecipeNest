@@ -112,10 +112,10 @@ const AddRecipePage = () => {
                 <span className="sr-only">Remove</span>
               </div>
               {ingredients.map((ing, i) => (
-                <div key={i} className="flex gap-2 items-start mb-2">
-                  <input type="text" placeholder="e.g. 2 cups" value={ing.amount} onChange={e => updateIngredient(i,'amount',e.target.value)} className={`${inputClass} w-[120px] shrink-0`} />
-                  <input type="text" placeholder="e.g. Rice" value={ing.name} onChange={e => updateIngredient(i,'name',e.target.value)} className={`${inputClass} flex-1 min-w-0`} />
-                  {ingredients.length > 1 && <button type="button" onClick={() => removeIngredient(i)} className="border border-linen text-gray-400 rounded-lg px-3 py-3 text-xs hover:border-sand hover:text-gray-600 transition-colors">×</button>}
+                <div key={i} className="grid grid-cols-[120px_1fr_auto] gap-2 items-center mb-2">
+                  <input type="text" placeholder="e.g. 2 cups" value={ing.amount} onChange={e => updateIngredient(i,'amount',e.target.value)} className={`${inputClass} w-full min-w-0`} />
+                  <input type="text" placeholder="e.g. Rice" value={ing.name} onChange={e => updateIngredient(i,'name',e.target.value)} className={`${inputClass} w-full min-w-0`} />
+                  {ingredients.length > 1 && <button type="button" onClick={() => removeIngredient(i)} className="border border-linen text-gray-400 rounded-lg px-3 py-3 text-xs hover:border-sand hover:text-gray-600 transition-colors self-stretch">×</button>}
                 </div>
               ))}
               <button type="button" onClick={addIngredient} className="editorial-label text-paprika hover:text-red-800 cursor-pointer mt-1 flex items-center gap-1">+ Add ingredient</button>

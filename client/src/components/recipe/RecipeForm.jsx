@@ -232,9 +232,15 @@ const RecipeForm = ({
           </button>
         </div>
 
+        <div className="grid grid-cols-[120px_1fr_auto] gap-3 px-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <span>Amount</span>
+          <span>Ingredient</span>
+          <span className="sr-only">Remove</span>
+        </div>
+
         <div className="space-y-3">
           {ingredients.map((ing, idx) => (
-            <div key={idx} className="flex gap-3 items-end">
+            <div key={idx} className="grid grid-cols-[120px_1fr_auto] gap-3 items-center">
               <input
                 type="text"
                 placeholder="Ingredient name"
@@ -242,7 +248,7 @@ const RecipeForm = ({
                 onChange={(e) =>
                   updateIngredient(idx, 'name', e.target.value)
                 }
-                className="input-field flex-1"
+                className="input-field w-full min-w-0"
               />
               <input
                 type="text"
@@ -251,14 +257,14 @@ const RecipeForm = ({
                 onChange={(e) =>
                   updateIngredient(idx, 'amount', e.target.value)
                 }
-                className="input-field w-32"
+                className="input-field w-full min-w-0"
               />
               <button
                 type="button"
                 onClick={() => removeIngredient(idx)}
                 className="w-10 h-10 flex items-center justify-center
                            text-red-500 hover:bg-red-50 rounded
-                           transition-colors"
+                           transition-colors self-stretch"
               >
                 ✕
               </button>
